@@ -5,18 +5,25 @@ import { ModalEditUser } from "./ModalEditUser";
 import Table from "react-bootstrap/Table";
 import { fetchAllUser } from "../services/UserService";
 import _ from "lodash";
+import { ModalConfirm } from "./ModalConfirm";
 export const TableUsers = () => {
   const [listUser, setListUser] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isShowModal, setIsShowModal] = useState(false);
   const [isShowModalEdit, setIsShowModalEdit] = useState(false);
+  const [isShowModalDelete, setIsShowModalDelete] = useState(false);
   const [dataUserEdit, setDataUserEdit] = useState({});
-
+  const [dataUserDelete, setDataUserDelete] = useState({});
   const handleEditFormModal = (user) => {
     let cloneListUser = _.cloneDeep(listUser);
     let index = listUser.findIndex((item) => item.id === user.id);
     cloneListUser[index].first_name = user.first_name;
+    setListUser(cloneListUser);
+  };
+  const handleDeleteUserFormModal = (user) => {
+    let cloneListUser = _.cloneDeep(listUser);
+    cloneListUser = cloneListUser.filter((item) => item.id !== user.id);
     setListUser(cloneListUser);
   };
 
@@ -38,6 +45,7 @@ export const TableUsers = () => {
   const handleClose = () => {
     setIsShowModal(false);
     setIsShowModalEdit(false);
+    setIsShowModalDelete(false);
   };
   const handleUpdateTable = (user) => {
     setListUser([user, ...listUser]);
@@ -46,6 +54,11 @@ export const TableUsers = () => {
   const handleEditUser = (user) => {
     setDataUserEdit(user);
     setIsShowModalEdit(true);
+  };
+
+  const handleDelete = (user) => {
+    setIsShowModalDelete(true);
+    setDataUserDelete(user);
   };
 
   return (
@@ -84,7 +97,9 @@ export const TableUsers = () => {
                       Edit
                     </button>
                     &nbsp;|&nbsp;
-                    <button className="btn btn-danger">Delete</button>
+                    <button className="btn btn-danger" onClick={() => handleDelete(item)}>
+                      Delete
+                    </button>
                   </td>
                 </tr>
               );
@@ -120,6 +135,12 @@ export const TableUsers = () => {
         handleClose={handleClose}
         dataUserEdit={dataUserEdit}
         handleEditFormModal={handleEditFormModal}
+      />
+      <ModalConfirm
+        show={isShowModalDelete}
+        handleClose={handleClose}
+        dataUserDelete={dataUserDelete}
+        handleDeleteUserFormModal={handleDeleteUserFormModal}
       />
     </>
   );

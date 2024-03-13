@@ -1,32 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { CreateUser } from "../services/UserService";
+import { putUpdateUser } from "../services/UserService";
 import { toast } from "react-toastify";
-export const ModalAddNew = (props) => {
-  const { show, handleClose, handleUpdateTable } = props;
+export const ModalEditUser = (props) => {
+  const { show, handleClose, dataUserEdit, handleEditFormModal } = props;
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
-  const handleSaveUser = async () => {
-    const res = await CreateUser(name, job);
-    if (res && res.id) {
-      //neu thanh cong thi` dong modal va set lai value ve rong
+  const handleEditUser = async () => {
+    let res = await putUpdateUser(name, job);
+    if (res && res.updatedAt) {
+      //success
+      handleEditFormModal({
+        first_name: name,
+        id: dataUserEdit.id,
+      });
       handleClose();
-      setName("");
-      setJob("");
-      //thanh cong thi se hien thong bao
-      toast.success("A user is created successfully!!!");
-      //update lai bang va` dua user moi tao len dau
-      handleUpdateTable({ first_name: name, id: res.id });
-    } else {
-      toast.error("an error occurred while creating the user !!!");
+      toast.success("A user is edit successfully!!!");
     }
+    console.log(res);
   };
+
+  useEffect(() => {
+    if (show) {
+      setName(dataUserEdit.first_name);
+    }
+  }, [dataUserEdit]);
+
   return (
     <>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Add new user</Modal.Title>
+          <Modal.Title>Edit a user</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="body-add-new">
@@ -61,10 +66,10 @@ export const ModalAddNew = (props) => {
           <Button
             variant="primary"
             onClick={() => {
-              handleSaveUser();
+              handleEditUser();
             }}
           >
-            Save Changes
+            Comfirm
           </Button>
         </Modal.Footer>
       </Modal>

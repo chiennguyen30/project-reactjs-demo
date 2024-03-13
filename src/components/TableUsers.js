@@ -1,20 +1,31 @@
 import React, { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
 import { ModalAddNew } from "./ModalAddNew";
+import { ModalEditUser } from "./ModalEditUser";
 import Table from "react-bootstrap/Table";
 import { fetchAllUser } from "../services/UserService";
-
+import _ from "lodash";
 export const TableUsers = () => {
   const [listUser, setListUser] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [isShowModal, setIsShowModal] = useState(false);
+  const [isShowModalEdit, setIsShowModalEdit] = useState(false);
+  const [dataUserEdit, setDataUserEdit] = useState({});
+
+  const handleEditFormModal = (user) => {
+    let cloneListUser = _.cloneDeep(listUser);
+    let index = listUser.findIndex((item) => item.id === user.id);
+    cloneListUser[index].first_name = user.first_name;
+    setListUser(cloneListUser);
+  };
+
   useEffect(() => {
     getUsers(1);
   }, []);
   const getUsers = async (page) => {
     let res = await fetchAllUser(page);
     if (res && res.data) {
-      console.log(res);
       setTotalUsers(res.total);
       setTotalPages(res.total_pages);
       setListUser(res.data);
@@ -23,13 +34,20 @@ export const TableUsers = () => {
   const handlePageClick = (even) => {
     getUsers(+even.selected + 1);
   };
-  const [isShowModal, setIsShowModal] = useState(false);
+
   const handleClose = () => {
     setIsShowModal(false);
+    setIsShowModalEdit(false);
   };
   const handleUpdateTable = (user) => {
     setListUser([user, ...listUser]);
   };
+
+  const handleEditUser = (user) => {
+    setDataUserEdit(user);
+    setIsShowModalEdit(true);
+  };
+
   return (
     <>
       <div className="my-3 d-flex justify-content-between">
@@ -48,6 +66,7 @@ export const TableUsers = () => {
             <th>Email</th>
             <th>First Name</th>
             <th>Last Name</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -60,6 +79,13 @@ export const TableUsers = () => {
                   <td>{item.email}</td>
                   <td>{item.first_name}</td>
                   <td>{item.last_name}</td>
+                  <td>
+                    <button className="btn btn-warning" onClick={() => handleEditUser(item)}>
+                      Edit
+                    </button>
+                    &nbsp;|&nbsp;
+                    <button className="btn btn-danger">Delete</button>
+                  </td>
                 </tr>
               );
             })}
@@ -84,7 +110,17 @@ export const TableUsers = () => {
         activeClassName="active"
       />
 
-      <ModalAddNew show={isShowModal} handleClose={handleClose} updateUser={handleUpdateTable} />
+      <ModalAddNew
+        show={isShowModal}
+        handleClose={handleClose}
+        handleUpdateTable={handleUpdateTable}
+      />
+      <ModalEditUser
+        show={isShowModalEdit}
+        handleClose={handleClose}
+        dataUserEdit={dataUserEdit}
+        handleEditFormModal={handleEditFormModal}
+      />
     </>
   );
 };

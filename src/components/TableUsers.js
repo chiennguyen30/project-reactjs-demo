@@ -4,8 +4,11 @@ import { ModalAddNew } from "./ModalAddNew";
 import { ModalEditUser } from "./ModalEditUser";
 import Table from "react-bootstrap/Table";
 import { fetchAllUser } from "../services/UserService";
-import _ from "lodash";
+import _, { debounce } from "lodash";
 import { ModalConfirm } from "./ModalConfirm";
+import "./TableUser.scss";
+import { CSVLink, CSVDownload } from "react-csv";
+
 export const TableUsers = () => {
   const [listUser, setListUser] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -15,12 +18,17 @@ export const TableUsers = () => {
   const [isShowModalDelete, setIsShowModalDelete] = useState(false);
   const [dataUserEdit, setDataUserEdit] = useState({});
   const [dataUserDelete, setDataUserDelete] = useState({});
+  const [sortBy, setSortBy] = useState("asc");
+  const [sortField, setSortField] = useState("id");
+  const [dataExport, setDataExport] = useState([]);
+
   const handleEditFormModal = (user) => {
     let cloneListUser = _.cloneDeep(listUser);
     let index = listUser.findIndex((item) => item.id === user.id);
     cloneListUser[index].first_name = user.first_name;
     setListUser(cloneListUser);
   };
+
   const handleDeleteUserFormModal = (user) => {
     let cloneListUser = _.cloneDeep(listUser);
     cloneListUser = cloneListUser.filter((item) => item.id !== user.id);
@@ -29,6 +37,7 @@ export const TableUsers = () => {
 
   useEffect(() => {
     getUsers(1);
+    console.log("test", listUser);
   }, []);
   const getUsers = async (page) => {
     let res = await fetchAllUser(page);
@@ -61,23 +70,107 @@ export const TableUsers = () => {
     setDataUserDelete(user);
   };
 
+  const handleSort = (sortBy, sortField) => {
+    setSortBy(sortBy);
+    setSortField(sortField);
+
+    let cloneListUser = _.cloneDeep(listUser);
+    cloneListUser = _.orderBy(cloneListUser, [sortField], [sortBy]);
+    setListUser(cloneListUser);
+  };
+  const handleSearch = debounce((e) => {
+    let term = e.target.value;
+    if (term) {
+      let cloneListUser = _.cloneDeep(listUser);
+      cloneListUser = cloneListUser.filter((item) => item.email.includes(term));
+      setListUser(cloneListUser);
+    } else {
+      getUsers(1);
+    }
+  }, 500);
+
+  const getUsersDataExport = (even, done) => {
+    const result = [];
+    if (listUser && listUser.length > 0) {
+      result.push(["Id", "Email", "First name", "Last name"]);
+      listUser.map((item, index) => {
+        let arr = [];
+        arr[0] = item.id;
+        arr[1] = item.email;
+        arr[2] = item.first_name;
+        arr[3] = item.last_name;
+        result.push(arr);
+      });
+      setDataExport(result);
+      done();
+    }
+  };
   return (
     <>
       <div className="my-3 d-flex justify-content-between">
         <span>
           <h3>List users:</h3>
         </span>
-        <button className="btn btn-primary" onClick={() => setIsShowModal(true)}>
-          Add new user
-        </button>
+        <div>
+          <input type="file" name="filefield" multiple="multiple" id="import-file" hidden></input>
+
+          <label htmlFor="import-file" className="btn btn-warning">
+            <i className="fa-solid fa-file-import"></i> Import
+          </label>
+          <CSVLink
+            data={dataExport}
+            asyncOnClick={true}
+            onClick={getUsersDataExport}
+            filename={"data-user.csv"}
+            className="btn btn-primary mx-3"
+          >
+            <i class="fa-solid fa-file-arrow-down"></i> Export
+          </CSVLink>
+
+          <button className="btn btn-primary" onClick={() => setIsShowModal(true)}>
+            <i className="fa-solid fa-circle-plus"></i> Add new
+          </button>
+        </div>
+      </div>
+      <div className="col-3 my-3">
+        <input
+          onChange={(e) => handleSearch(e)}
+          className="form-control"
+          placeholder="search user by email..."
+        />
       </div>
 
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>ID</th>
+            <th>
+              <div className="sort-header">
+                <span>ID</span>{" "}
+                <span>
+                  <i
+                    onClick={() => handleSort("desc", "id")}
+                    class="fa-solid fa-arrow-down-long"
+                  ></i>
+                  <i onClick={() => handleSort("asc", "id")} class="fa-solid fa-arrow-up-long"></i>
+                </span>
+              </div>
+            </th>
             <th>Email</th>
-            <th>First Name</th>
+            <th>
+              <div className="sort-header">
+                <span>First Name</span>{" "}
+                <span>
+                  <i
+                    onClick={() => handleSort("desc", "first_name")}
+                    class="fa-solid fa-arrow-down-long"
+                  ></i>
+                  <i
+                    onClick={() => handleSort("asc", "first_name")}
+                    class="fa-solid fa-arrow-up-long"
+                  ></i>
+                </span>
+              </div>
+            </th>
             <th>Last Name</th>
             <th>Actions</th>
           </tr>

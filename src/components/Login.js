@@ -1,21 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { LoginApi } from "../services/UserService";
 import "./TableUser.scss";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
 export const Login = () => {
+  const { loginContext } = useContext(UserContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/");
-    }
-  });
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     navigate("/");
+  //   }
+  // });
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -27,7 +29,7 @@ export const Login = () => {
     setShowLoading(true);
     let res = await LoginApi(email, password);
     if (res && res.token) {
-      localStorage.setItem("token", res.token);
+      loginContext(email, res.token);
       navigate("/");
     } else {
       if (res && res.status === 400) {
@@ -36,11 +38,14 @@ export const Login = () => {
     }
     setShowLoading(false);
   };
+
+  const BackHome = () => {
+    navigate("/");
+  };
   return (
     <div className="login-container col-12 col-sm-4">
-      <p>eve.holt@reqres.in</p>
       <div className="title-login">Log in</div>
-      <div className="text-email">Email or username</div>
+      <div className="text-email">Email or username(eve.holt@reqres.in)</div>
       <input
         type="text"
         placeholder="Username"
@@ -69,7 +74,8 @@ export const Login = () => {
         {showLoading && <i className="fa-solid fa-sync fa-spin"></i>} &nbsp; Log in
       </button>
       <div className="back">
-        <i className="fa-solid fa-angles-left"></i> Go back
+        <i className="fa-solid fa-angles-left"></i> &nbps;{" "}
+        <span onClick={() => BackHome()}>Go Back</span>
       </div>
     </div>
   );

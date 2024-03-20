@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
@@ -8,7 +8,6 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { UserContext } from "../context/UserContext";
 export const Header = (props) => {
-  const [hideHeader, setHideHeader] = useState(false);
   const { logout, user } = useContext(UserContext);
   const nagivete = useNavigate();
   const handleLogOut = () => {
@@ -16,11 +15,6 @@ export const Header = (props) => {
     nagivete("/");
     toast.success("log out successfully");
   };
-  // useEffect(() => {
-  //   if (window.location.pathname === "/login") {
-  //     setHideHeader(true);
-  //   }
-  // }, []);
   return (
     <Navbar expand="lg" className="bg-body-tertiary">
       <Container>

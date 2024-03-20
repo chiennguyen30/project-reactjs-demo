@@ -1,23 +1,17 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { LoginApi } from "../services/UserService";
 import "./TableUser.scss";
 import { toast } from "react-toastify";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 export const Login = () => {
-  const { loginContext } = useContext(UserContext);
+  const { LoginContext } = useContext(UserContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   if (token) {
-  //     navigate("/");
-  //   }
-  // });
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -29,7 +23,7 @@ export const Login = () => {
     setShowLoading(true);
     let res = await LoginApi(email, password);
     if (res && res.token) {
-      loginContext(email, res.token);
+      LoginContext(email, res.token);
       navigate("/");
     } else {
       if (res && res.status === 400) {
@@ -74,8 +68,7 @@ export const Login = () => {
         {showLoading && <i className="fa-solid fa-sync fa-spin"></i>} &nbsp; Log in
       </button>
       <div className="back">
-        <i className="fa-solid fa-angles-left"></i> &nbps;{" "}
-        <span onClick={() => BackHome()}>Go Back</span>
+        <i className="fa-solid fa-angles-left"></i> <span onClick={() => BackHome()}>Go Back</span>
       </div>
     </div>
   );

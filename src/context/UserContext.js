@@ -8,7 +8,7 @@ const UserContext = React.createContext({ email: "", auth: false });
 const UserProvider = ({ children }) => {
   const [user, setUser] = React.useState({ email: "", auth: false });
 
-  const loginContext = (email, token) => {
+  const LoginContext = (email, token) => {
     setUser((user) => ({
       email: email,
       auth: true,
@@ -16,7 +16,6 @@ const UserProvider = ({ children }) => {
     localStorage.setItem("token", token);
     localStorage.setItem("email", email);
   };
-
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
@@ -27,7 +26,7 @@ const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, loginContext, logout }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, LoginContext, logout }}>{children}</UserContext.Provider>
   );
 };
 

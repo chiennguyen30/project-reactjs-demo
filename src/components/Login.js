@@ -1,16 +1,17 @@
-import React, { useState, useContext } from "react";
-import { LoginApi } from "../services/UserService";
+import React, { useEffect, useState } from "react";
 import "./TableUser.scss";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../context/UserContext";
+import { handleLoginRedux } from "../redux/actions/userAction";
+import { useDispatch, useSelector } from "react-redux";
 export const Login = () => {
-  const { LoginContext } = useContext(UserContext);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showLoading, setShowLoading] = useState(false);
+  const isLoading = useSelector((state) => state.user.isLoading);
+  const dataAcount = useSelector((state) => state.user.dataAcount);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -20,17 +21,8 @@ export const Login = () => {
       toast.error("Please enter your email end password");
       return;
     }
-    setShowLoading(true);
-    let res = await LoginApi(email.trim(), password);
-    if (res && res.token) {
-      LoginContext(email, res.token);
-      navigate("/");
-    } else {
-      if (res && res.status === 400) {
-        toast.error(res.data.error);
-      }
-    }
-    setShowLoading(false);
+
+    dispatch(handleLoginRedux(email, password));
   };
 
   const BackHome = () => {
@@ -42,6 +34,12 @@ export const Login = () => {
       handleLogin();
     }
   };
+
+  useEffect(() => {
+    if (dataAcount && dataAcount.auth === true) {
+      navigate("/");
+    }
+  }, [dataAcount]);
   return (
     <div className="login-container col-12 col-sm-4">
       <div className="title-login">Log in</div>
@@ -63,7 +61,7 @@ export const Login = () => {
         {showPassword ? (
           <i className="fa-regular fa-eye-slash" onClick={togglePasswordVisibility}></i>
         ) : (
-          <i class="fa-regular fa-eye" onClick={togglePasswordVisibility}></i>
+          <i className="fa-regular fa-eye" onClick={togglePasswordVisibility}></i>
         )}
       </div>
 
@@ -72,7 +70,7 @@ export const Login = () => {
         disabled={!email || !password}
         onClick={() => handleLogin()}
       >
-        {showLoading && <i className="fa-solid fa-sync fa-spin"></i>} &nbsp; Log in
+        {isLoading && <i className="fa-solid fa-sync fa-spin"></i>} &nbsp; Log in
       </button>
       <div className="back">
         <i className="fa-solid fa-angles-left"></i> <span onClick={() => BackHome()}>Go Back</span>

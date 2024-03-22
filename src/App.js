@@ -5,12 +5,14 @@ import "./App.scss";
 import { Bounce, ToastContainer } from "react-toastify";
 import { Header } from "./components/Header";
 import { AppRoute } from "./routes/AppRoute";
+import { useDispatch, useSelector } from "react-redux";
+import { handleRefresh } from "./redux/actions/userAction";
 
 function App() {
-  const { user, LoginContext } = useContext(UserContext);
+  const dispatch = useDispatch();
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      LoginContext(localStorage.getItem("email"), localStorage.getItem("token"));
+      dispatch(handleRefresh());
     }
   });
   return (

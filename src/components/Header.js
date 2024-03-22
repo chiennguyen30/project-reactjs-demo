@@ -6,15 +6,21 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import logo from "../asset/img/logo192.png";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { UserContext } from "../context/UserContext";
+import { useDispatch, useSelector } from "react-redux";
+import { handleLogOutRedux } from "../redux/actions/userAction";
 export const Header = (props) => {
-  const { logout, user } = useContext(UserContext);
   const nagivete = useNavigate();
+  const user = useSelector((state) => state.user.dataAcount);
+  const dispatch = useDispatch();
   const handleLogOut = () => {
-    logout();
-    nagivete("/");
-    toast.success("log out successfully");
+    dispatch(handleLogOutRedux());
   };
+  useEffect(() => {
+    if (user && user.auth === false) {
+      nagivete("/");
+      toast.success("log out successfully");
+    }
+  }, [user]);
   return (
     <Navbar expand="lg" className="bg-body-tertiary">
       <Container>

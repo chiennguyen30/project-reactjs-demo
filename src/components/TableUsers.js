@@ -8,7 +8,8 @@ import _, { debounce } from "lodash";
 import { ModalConfirm } from "./ModalConfirm";
 import "./TableUser.scss";
 import { CSVLink, CSVDownload } from "react-csv";
-
+import Papa from "papaparse";
+import { toast } from "react-toastify";
 export const TableUsers = () => {
   const [listUser, setListUser] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -37,7 +38,6 @@ export const TableUsers = () => {
 
   useEffect(() => {
     getUsers(1);
-    console.log("test", listUser);
   }, []);
   const getUsers = async (page) => {
     let res = await fetchAllUser(page);
@@ -105,15 +105,66 @@ export const TableUsers = () => {
       done();
     }
   };
+
+  const handleImportCsv = (e) => {
+    if (e.target && e.target.files && e.target.files[0]) {
+      let file = e.target.files[0];
+      if (file.type !== "text/csv") {
+        toast.error("Only accept text/csv files");
+        return;
+      }
+      // Parse local CSV file
+      Papa.parse(file, {
+        // header: true,
+        complete: function (results) {
+          let rawCSV = results.data;
+          if (rawCSV.length > 0) {
+            if (rawCSV[0] && rawCSV[0].length === 3) {
+              if (
+                rawCSV[0][0] !== "email" ||
+                rawCSV[0][1] !== "first_name" ||
+                rawCSV[0][2] !== "last_name"
+              ) {
+                toast.error("Wrong format header CSV file");
+              } else {
+                let result = [];
+
+                rawCSV.map((item, index) => {
+                  if (index > 0 && item.length === 3) {
+                    let obj = {};
+                    obj.email = item[0];
+                    obj.first_name = item[1];
+                    obj.last_name = item[2];
+                    result.push(obj);
+                  }
+                });
+                setListUser(result);
+              }
+            } else {
+              toast.error("Wrong format CSV file");
+            }
+          } else {
+            toast.error("Not found data on CSV file");
+          }
+        },
+      });
+    }
+  };
   return (
     <>
-      <div className="my-3 d-flex justify-content-between">
-        <span>
-          <h3>List users:</h3>
+      <div className="my-3 add-new d-sm-flex">
+        <span className="">
+          <b>List users:</b>
         </span>
-        <div>
-          <input type="file" name="filefield" multiple="multiple" id="import-file" hidden></input>
-
+        <div className="group-btns mt-sm-0 mt-2">
+          <input
+            type="file"
+            name="filefield"
+            multiple="multiple"
+            id="import-file"
+            hidden
+            onChange={(e) => handleImportCsv(e)}
+          ></input>
           <label htmlFor="import-file" className="btn btn-warning">
             <i className="fa-solid fa-file-import"></i> Import
           </label>
@@ -122,9 +173,9 @@ export const TableUsers = () => {
             asyncOnClick={true}
             onClick={getUsersDataExport}
             filename={"data-user.csv"}
-            className="btn btn-primary mx-3"
+            className="btn btn-primary "
           >
-            <i class="fa-solid fa-file-arrow-down"></i> Export
+            <i className="fa-solid fa-file-arrow-down"></i> Export
           </CSVLink>
 
           <button className="btn btn-primary" onClick={() => setIsShowModal(true)}>
@@ -132,73 +183,77 @@ export const TableUsers = () => {
           </button>
         </div>
       </div>
-      <div className="col-3 my-3">
+      <div className="col-sm-3 my-3">
         <input
           onChange={(e) => handleSearch(e)}
           className="form-control"
           placeholder="search user by email..."
         />
       </div>
-
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>
-              <div className="sort-header">
-                <span>ID</span>{" "}
-                <span>
-                  <i
-                    onClick={() => handleSort("desc", "id")}
-                    class="fa-solid fa-arrow-down-long"
-                  ></i>
-                  <i onClick={() => handleSort("asc", "id")} class="fa-solid fa-arrow-up-long"></i>
-                </span>
-              </div>
-            </th>
-            <th>Email</th>
-            <th>
-              <div className="sort-header">
-                <span>First Name</span>{" "}
-                <span>
-                  <i
-                    onClick={() => handleSort("desc", "first_name")}
-                    class="fa-solid fa-arrow-down-long"
-                  ></i>
-                  <i
-                    onClick={() => handleSort("asc", "first_name")}
-                    class="fa-solid fa-arrow-up-long"
-                  ></i>
-                </span>
-              </div>
-            </th>
-            <th>Last Name</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {listUser &&
-            listUser.length > 0 &&
-            listUser.map((item, index) => {
-              return (
-                <tr key={`users-${index}`}>
-                  <td>{item.id}</td>
-                  <td>{item.email}</td>
-                  <td>{item.first_name}</td>
-                  <td>{item.last_name}</td>
-                  <td>
-                    <button className="btn btn-warning" onClick={() => handleEditUser(item)}>
-                      Edit
-                    </button>
-                    &nbsp;|&nbsp;
-                    <button className="btn btn-danger" onClick={() => handleDelete(item)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-        </tbody>
-      </Table>
+      <div className="customize-table">
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>
+                <div className="sort-header">
+                  <span>ID</span>{" "}
+                  <span>
+                    <i
+                      onClick={() => handleSort("desc", "id")}
+                      className="fa-solid fa-arrow-down-long"
+                    ></i>
+                    <i
+                      onClick={() => handleSort("asc", "id")}
+                      className="fa-solid fa-arrow-up-long"
+                    ></i>
+                  </span>
+                </div>
+              </th>
+              <th>Email</th>
+              <th>
+                <div className="sort-header">
+                  <span>First Name</span>{" "}
+                  <span>
+                    <i
+                      onClick={() => handleSort("desc", "first_name")}
+                      className="fa-solid fa-arrow-down-long"
+                    ></i>
+                    <i
+                      onClick={() => handleSort("asc", "first_name")}
+                      className="fa-solid fa-arrow-up-long"
+                    ></i>
+                  </span>
+                </div>
+              </th>
+              <th>Last Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {listUser &&
+              listUser.length > 0 &&
+              listUser.map((item, index) => {
+                return (
+                  <tr key={`users-${index}`}>
+                    <td>{item.id}</td>
+                    <td>{item.email}</td>
+                    <td>{item.first_name}</td>
+                    <td>{item.last_name}</td>
+                    <td>
+                      <button className="btn btn-warning " onClick={() => handleEditUser(item)}>
+                        Edit
+                      </button>
+                      &nbsp;|&nbsp;
+                      <button className="btn btn-danger mt-1" onClick={() => handleDelete(item)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </Table>
+      </div>
       <ReactPaginate
         breakLabel="..."
         nextLabel="next >"

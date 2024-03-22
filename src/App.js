@@ -1,15 +1,24 @@
+import React, { useContext, useEffect } from "react";
+import { UserContext } from "./context/UserContext";
 import { Container } from "react-bootstrap";
 import "./App.scss";
 import { Bounce, ToastContainer } from "react-toastify";
 import { Header } from "./components/Header";
-import { TableUsers } from "./components/TableUsers";
+import { AppRoute } from "./routes/AppRoute";
+
 function App() {
+  const { user, LoginContext } = useContext(UserContext);
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      LoginContext(localStorage.getItem("email"), localStorage.getItem("token"));
+    }
+  });
   return (
     <>
       <div className="app-container">
         <Header />
         <Container>
-          <TableUsers />
+          <AppRoute />
         </Container>
       </div>
       <ToastContainer

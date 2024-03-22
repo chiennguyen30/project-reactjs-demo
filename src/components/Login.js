@@ -21,7 +21,7 @@ export const Login = () => {
       return;
     }
     setShowLoading(true);
-    let res = await LoginApi(email, password);
+    let res = await LoginApi(email.trim(), password);
     if (res && res.token) {
       LoginContext(email, res.token);
       navigate("/");
@@ -35,6 +35,12 @@ export const Login = () => {
 
   const BackHome = () => {
     navigate("/");
+  };
+
+  const handlePressEnter = (e) => {
+    if (e && e.key === "Enter") {
+      handleLogin();
+    }
   };
   return (
     <div className="login-container col-12 col-sm-4">
@@ -52,6 +58,7 @@ export const Login = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => handlePressEnter(e)}
         />
         {showPassword ? (
           <i className="fa-regular fa-eye-slash" onClick={togglePasswordVisibility}></i>

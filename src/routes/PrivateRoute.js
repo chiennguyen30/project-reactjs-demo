@@ -1,10 +1,13 @@
 import React, { useContext } from "react";
-import { Routes, Route } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import Alert from "react-bootstrap/Alert";
 const PrivateRoute = (props) => {
+  const navigate = useNavigate();
   const { user } = useContext(UserContext);
-
+  const handleBackLogin = () => {
+    navigate("/login");
+  };
   if (user && !user.auth) {
     return (
       <>
@@ -15,18 +18,12 @@ const PrivateRoute = (props) => {
             porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet
             fermentum.
           </p>
+          <p onClick={handleBackLogin}>đăng nhập tại đây </p>
         </Alert>
       </>
     );
   }
-  return (
-    <>
-      {/* <Routes>
-        <Route path={props.path} element={props.children} />
-      </Routes> */}
-      {props.children}
-    </>
-  );
+  return <>{props.children}</>;
 };
 
 export default PrivateRoute;
